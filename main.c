@@ -1,16 +1,9 @@
 #include <msp430.h> 
 #include "LegendPWM.h"
 #include "LegendI2C.h"
-
-//Struct to keep track of the Motor Driver State.
-typedef struct MDstate {
-    unsigned char currentSpeed;
-    unsigned char desiredSpeed;
-    unsigned char inShutdown; //1 or 0
-} MDstate_t;
+#include "MDtypes.h"
 
 
-MDstate_t state;
 
 
 /**
@@ -30,7 +23,7 @@ int main(void)
 	//Initialize various communications protocols.
 
 	setupPWM();
-	setupI2C();
+	setupI2C(&state);
 
 
 	//Enter low power mode with interrupts enabled.
