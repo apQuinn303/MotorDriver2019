@@ -35,7 +35,7 @@ __interrupt void USCI_B2_ISR(void)
     }
 }
 
-void setupI2C(MDstate_t* state)
+void setupI2C(volatile MDstate_t* state)
 {
     //Make sure we have a reference to the overall state struct.
     boardState = state;
@@ -95,6 +95,17 @@ void processIncomingByte(unsigned char byte)
 
     if(incoming.checksum == I2C_CHECKSUM)
     {
+
+        if((parity(incoming.checksum) ^
+           parity(incoming.data) ^
+           parity(incoming.flags & ~PARITY)) != (incoming.flags & PARITY))
+        {
+            //Parity Errors!
+            errorFlag = 1;
+            return;
+        }
+
+
         /*Process data*/
         boardState->desiredSpeed = incoming.data;
 
@@ -106,6 +117,11 @@ void processIncomingByte(unsigned char byte)
             boardState->inShutdown = 1;
             //TODO: Initiate immediate motor shutdown.
         }
+    }
+    else
+    {
+        //Checksum error!
+        errorFlag = 1;
     }
 }
 
@@ -119,6 +135,13 @@ unsigned char generateOutgoingByte()
         outgoing.flags = 0;
         if(boardState->inShutdown) outgoing.flags |= MD_NOK;
         else outgoing.flags |= MD_OK;
+
+        if(errorFlag)
+        {
+            outgoing.flags |= ERROR;
+            errorFlag = 0;
+        }
+
         TXCounter++;
         return outgoing.checksum;
 
@@ -130,4 +153,22 @@ unsigned char generateOutgoingByte()
         TXCounter++;
         return outgoing.flags;
     }
+
+    return 0;
+}
+
+/*
+ * Returns the parity of an individual char.
+ */
+unsigned char parity(unsigned char x)
+{
+    unsigned char par = 0;
+    int i;
+    for(i = 0; i < 8; i++)
+    {
+        par ^= x;
+        x >>= 1;
+    }
+
+    return par & 0x01;
 }

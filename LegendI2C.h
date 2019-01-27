@@ -19,6 +19,7 @@
 #define MD_NOK 0x4
 #define SHUTDOWN 0x8
 #define STARTUP 0x10
+#define ERROR 0x20
 
 typedef struct I2Cmessage {
     unsigned char checksum;
@@ -47,7 +48,8 @@ typedef struct I2Cmessage {
  * bit 2 - MD_NOK (Asserted by Motor Driver if in error state)
  * bit 3 - Request Motor Shutdown
  * bit 4 - Request Motor Startup
- * bit 5 - Unused
+ * bit 5 - Error Flag (indicates the last transmission was not
+ *                     received properly due to an error.)
  * bit 6 - Unused
  * bit 7 - Unused
  *
@@ -55,7 +57,7 @@ typedef struct I2Cmessage {
  */
 
 
-
+volatile unsigned char errorFlag;
 
 volatile unsigned char RXData;
 volatile unsigned char TXData;
@@ -68,9 +70,11 @@ volatile message_t outgoing;
 
 volatile static MDstate_t* boardState;
 
-void setupI2C(MDstate_t* state);
+void setupI2C(volatile MDstate_t* state);
 void processIncomingByte(unsigned char byte);
 unsigned char generateOutgoingByte();
+
+unsigned char parity(unsigned char x);
 
 
 
