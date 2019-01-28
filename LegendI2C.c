@@ -130,4 +130,6 @@ unsigned char generateOutgoingByte()
         TXCounter++;
         return outgoing.flags;
     }
+
+    return 0;
 }
