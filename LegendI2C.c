@@ -9,6 +9,7 @@
 #include "msp430.h"
 #include "LegendI2C.h"
 #include "LegendPWM.h"
+#include "Commutation.h"
 #include "MDtypes.h"
 
 #pragma vector = EUSCI_B2_VECTOR
@@ -109,13 +110,16 @@ void processIncomingByte(unsigned char byte)
         /*Process data*/
         boardState->desiredSpeed = incoming.data;
 
+        if(incoming.flags & CCW) boardState->counterClockwise = 1;
+        else boardState->counterClockwise = 0;
+
         if(incoming.flags & STARTUP) boardState->inShutdown = 0;
 
         //If both STARTUP and SHUTDOWN, then SHUTDOWN takes priority.
         if(incoming.flags & SHUTDOWN)
         {
             boardState->inShutdown = 1;
-            //TODO: Initiate immediate motor shutdown.
+            shutdownMotor();
         }
     }
     else
@@ -135,6 +139,8 @@ unsigned char generateOutgoingByte()
         outgoing.flags = 0;
         if(boardState->inShutdown) outgoing.flags |= MD_NOK;
         else outgoing.flags |= MD_OK;
+
+        if(boardState->counterClockwise) outgoing.flags |= CCW;
 
         if(errorFlag)
         {

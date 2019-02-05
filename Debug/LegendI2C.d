@@ -17,6 +17,7 @@ LegendI2C.obj: C:/ti/ccsv8/ccs_base/msp430/include/legacy.h
 LegendI2C.obj: ../LegendI2C.h
 LegendI2C.obj: ../MDtypes.h
 LegendI2C.obj: ../LegendPWM.h
+LegendI2C.obj: ../Commutation.h
 
 ../LegendI2C.c: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-msp430_18.1.3.LTS/include/stdio.h: 
@@ -35,3 +36,4 @@ C:/ti/ccsv8/ccs_base/msp430/include/legacy.h:
 ../LegendI2C.h: 
 ../MDtypes.h: 
 ../LegendPWM.h: 
+../Commutation.h: 

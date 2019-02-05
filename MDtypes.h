@@ -13,6 +13,7 @@ typedef struct MDstate {
     unsigned char currentSpeed;
     unsigned char desiredSpeed;
     unsigned char inShutdown; //1 or 0
+    unsigned char counterClockwise; //1 or 0
 } MDstate_t;
 
 volatile MDstate_t state;

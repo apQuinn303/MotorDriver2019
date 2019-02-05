@@ -20,6 +20,7 @@
 #define SHUTDOWN 0x8
 #define STARTUP 0x10
 #define ERROR 0x20
+#define CCW 0x40
 
 typedef struct I2Cmessage {
     unsigned char checksum;
@@ -50,7 +51,7 @@ typedef struct I2Cmessage {
  * bit 4 - Request Motor Startup
  * bit 5 - Error Flag (indicates the last transmission was not
  *                     received properly due to an error.)
- * bit 6 - Unused
+ * bit 6 - Counter-Clockwise Flag (EWISOTT)
  * bit 7 - Unused
  *
  ********

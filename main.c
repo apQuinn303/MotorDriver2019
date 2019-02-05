@@ -1,6 +1,7 @@
 #include <msp430.h> 
 #include "LegendPWM.h"
 #include "LegendI2C.h"
+#include "Commutation.h"
 #include "MDtypes.h"
 
 
@@ -20,6 +21,7 @@ int main(void){
 	state.currentSpeed = 0; //Hopefully!
 	state.desiredSpeed = 0;
 	state.inShutdown = 1;   //Start off in shutdown; wait to turn on.
+	state.counterClockwise = 0;
 
 	//Initialize various communications protocols.
 

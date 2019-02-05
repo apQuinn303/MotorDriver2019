@@ -18,24 +18,7 @@
 #define LS_W    0x10
 #define HS_W    0x20
 
-unsigned char CounterCWCommutationTable[] = { 0x00,
-                                      HS_W|LS_V,       // Hall position 001
-                                      HS_V|LS_U,       // Hall position 010
-                                      HS_W|LS_U,       // Hall position 011
-                                      HS_U|LS_W,       // Hall position 100
-                                      HS_U|LS_V,       // Hall position 101
-                                      HS_V|LS_W,       // Hall position 110
-                                        0x00   };
 
-
-unsigned char CWCommutationTable[] = {  0x00,
-                                      HS_V|LS_W,       // Hall position 001
-                                      HS_U|LS_V,       // Hall position 010
-                                      HS_U|LS_W,       // Hall position 011
-                                      HS_W|LS_U,       // Hall position 100
-                                      HS_V|LS_U,       // Hall position 101
-                                      HS_W|LS_V,       // Hall position 110
-                                        0x00   };
 
 
 

@@ -10,6 +10,7 @@ main.obj: C:/ti/ccsv8/ccs_base/msp430/include/legacy.h
 main.obj: ../LegendPWM.h
 main.obj: ../LegendI2C.h
 main.obj: ../MDtypes.h
+main.obj: ../Commutation.h
 
 ../main.c: 
 C:/ti/ccsv8/ccs_base/msp430/include/msp430.h: 
@@ -21,3 +22,4 @@ C:/ti/ccsv8/ccs_base/msp430/include/legacy.h:
 ../LegendPWM.h: 
 ../LegendI2C.h: 
 ../MDtypes.h: 
+../Commutation.h: 

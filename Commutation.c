@@ -39,11 +39,30 @@ __interrupt void P4_ISR(void)
 }
 
 
+unsigned char CounterCWCommutationTable[] = { 0x00,
+                                      HS_W|LS_V,       // Hall position 001
+                                      HS_V|LS_U,       // Hall position 010
+                                      HS_W|LS_U,       // Hall position 011
+                                      HS_U|LS_W,       // Hall position 100
+                                      HS_U|LS_V,       // Hall position 101
+                                      HS_V|LS_W,       // Hall position 110
+                                        0x00   };
+
+
+unsigned char CWCommutationTable[] = {  0x00,
+                                      HS_V|LS_W,       // Hall position 001
+                                      HS_U|LS_V,       // Hall position 010
+                                      HS_U|LS_W,       // Hall position 011
+                                      HS_W|LS_U,       // Hall position 100
+                                      HS_V|LS_U,       // Hall position 101
+                                      HS_W|LS_V,       // Hall position 110
+                                        0x00   };
+
+
 void initializeCommutation(void)
 {
-    //TODO: Set up interrupts on P3.2, P3.3, and P4.7
+    //TODO: Set up interrupts on P3.2, P3.3, and P4.7 to be triggered by the vectors above.
 
-    pwm_max_duty_cycle = state.desiredSpeed;
 }
 
 void shutdownMotor(void)
@@ -70,12 +89,13 @@ void updateCommutationState(void)
 
     unsigned char hallState = 0;
 
-    //TODO: Put values from P3.2, P3.3, P4.7 into hallState's lowest bits in some order.
+    //TODO: Put bit values from P3.2, P3.3, P4.7 into hallState's lowest bits in some order.
     //NOTE: Doing this right/wrong will determine if the motor spins or not.
 
-    unsigned char commutationState = CWCommutationTable[hallState];
+    unsigned char commutationState;
 
-    //TODO: Need a new global state variable for CW vs CCW, and an IF statement to determine which table we use.
+    if(state.counterClockwise)  commutationState = CounterCWCommutationTable[hallState];
+    else commutationState = CWCommutationTable[hallState];
 
 
     //Set up PWM outputs.
