@@ -10,6 +10,7 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./Commutation.obj" \
 "./LegendI2C.obj" \
 "./LegendPWM.obj" \
 "./main.obj" \
@@ -158,8 +159,8 @@ NewMotorDriverRepo.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "LegendI2C.obj" "LegendPWM.obj" "main.obj" 
-	-$(RM) "LegendI2C.d" "LegendPWM.d" "main.d" 
+	-$(RM) "Commutation.obj" "LegendI2C.obj" "LegendPWM.obj" "main.obj" 
+	-$(RM) "Commutation.d" "LegendI2C.d" "LegendPWM.d" "main.d" 
 	-@echo 'Finished clean'
 	-@echo ' '
 

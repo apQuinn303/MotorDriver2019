@@ -12,9 +12,9 @@
 #include <msp430.h>
 
 void setupPWM(void);
-void setPhaseA(int dutycycle);
-void setPhaseB(int dutycycle);
-void setPhaseC(int dutycycle);
+void setPhaseA(unsigned char dutycycle);
+void setPhaseB(unsigned char dutycycle);
+void setPhaseC(unsigned char dutycycle);
 
 
 

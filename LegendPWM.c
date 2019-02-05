@@ -91,19 +91,19 @@ void setupPWM(void)
 
 }
 
-void setPhaseA(int dutycycle)
+void setPhaseA(unsigned char dutycycle)
 {
-    TB0CCR1 = (dutycycle*32)/100;
+    TB0CCR1 = (((unsigned int)dutycycle)*32)/100;
 }
 
-void setPhaseB(int dutycycle)
+void setPhaseB(unsigned char dutycycle)
 {
-    TB0CCR2 = (dutycycle*32)/100;
+    TB0CCR2 = (((unsigned int)dutycycle)*32)/100;
 }
 
-void setPhaseC(int dutycycle)
+void setPhaseC(unsigned char dutycycle)
 {
-    TB0CCR3 = (dutycycle*32)/100;
+    TB0CCR3 = (((unsigned int)dutycycle)*32)/100;
 }
 
 
