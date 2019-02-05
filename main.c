@@ -10,8 +10,9 @@
  * Main Function - Set up timers, interrupts, and libraries,
  * and then go into low power mode.
  */
-int main(void)
-{
+int main(void){
+
+
 	WDTCTL = WDTPW | WDTHOLD;	// stop watchdog timer
 	
 	//Initially...
