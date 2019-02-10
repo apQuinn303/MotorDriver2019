@@ -27,6 +27,7 @@ int main(void){
 
 	setupPWM();
 	setupI2C(&state);
+	initializeCommutation();
 
 
 	//Enter low power mode with interrupts enabled.

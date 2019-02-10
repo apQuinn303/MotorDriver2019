@@ -15,7 +15,13 @@ __interrupt void P3_ISR(void)
     switch(P3IV)
     {
     case P3IV_P3IFG2:
+        if(P3IN & BIT2) P3IES |= BIT2; //Swap interrupt edge direction.
+        else P3IN &= ~BIT2;
+        updateCommutationState();
+        return;
     case P3IV_P3IFG3:
+        if(P3IN & BIT3) P3IES |= BIT3; //Swap interrupt edge direction.
+        else P3IN &= ~BIT3;
         updateCommutationState();
         return;
 
@@ -30,6 +36,8 @@ __interrupt void P4_ISR(void)
     switch(P4IV)
     {
     case P4IV_P4IFG7:
+        if(P4IN & BIT7) P4IES |= BIT7; //Swap interrupt edge direction.
+        else P4IN &= ~BIT7;
         updateCommutationState();
         return;
 
@@ -61,7 +69,32 @@ unsigned char CWCommutationTable[] = {  0x00,
 
 void initializeCommutation(void)
 {
-    //TODO: Set up interrupts on P3.2, P3.3, and P4.7 to be triggered by the vectors above.
+    //P3.2
+    P3DIR &= ~BIT2; //Set as an input
+
+    if(P3IN & BIT2) P3IES |= BIT2; //Set up interrupt edge based on state.
+    else P3IN &= ~BIT2;
+
+    P3IFG &= ~BIT2; //Clear the interrupt flag.
+    P3IE |= BIT2; //Enable interrupt
+
+    //P3.3
+    P3DIR &= ~BIT3; //Set as an input
+
+    if(P3IN & BIT3) P3IES |= BIT3; //Set up interrupt edge based on state.
+    else P3IN &= ~BIT3;
+
+    P3IFG &= ~BIT3; //Clear the interrupt flag.
+    P3IE |= BIT3; //Enable interrupt
+
+    //P4.7
+    P4DIR &= ~BIT7; //Set as an input
+
+    if(P4IN & BIT7) P4IES |= BIT7; //Set up interrupt edge based on state.
+    else P4IN &= ~BIT7;
+
+    P4IFG &= ~BIT7; //Clear the interrupt flag.
+    P4IE |= BIT7; //Enable interrupt
 
 }
 
@@ -87,10 +120,12 @@ void updateCommutationState(void)
     if(pwm_max_duty_cycle > 100) pwm_max_duty_cycle = 100;
 
 
+    //Form a bit vector out of the hall state inputs.
+    //NOTE: May need to change this if the windings are different than anticipated.
     unsigned char hallState = 0;
-
-    //TODO: Put bit values from P3.2, P3.3, P4.7 into hallState's lowest bits in some order.
-    //NOTE: Doing this right/wrong will determine if the motor spins or not.
+    if(P4IN & BIT7) hallState |= BIT0;
+    if(P3IN & BIT3) hallState |= BIT1;
+    if(P3IN & BIT2) hallState |= BIT2;
 
     unsigned char commutationState;
 
