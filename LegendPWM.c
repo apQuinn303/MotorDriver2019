@@ -44,17 +44,15 @@ __interrupt void timerBISR1(void){
 
 
 /*
- * Sets up the PWM to source from ACLK a 32kHz source that can come from an LFXTAL or
- * from the internal VLO. This can be changed in the future for better PWM control.
- * Sets up the PWM period to be 1ms.
+ * Sets up the PWM to source from 32 kHz ACLK
  */
 void setupPWM(void)
 {
-    //TA0CCR0 defines the clock period. For a 32kHz clock source, a limit of 32 means a period of 1 kHz.
-    TB0CCR0 = 32;
+    //TB0CCR0 defines the clock period. For example 32kHz / 32 period = 1 kHz PWM frequency
+    TB0CCR0 = CLOCK_PERIOD;
 
     //Set the clock select to "ACLK" and Mode Control to "UP" and Input Divider to /1 and then clear the clock.
-    TB0CTL = TASSEL0 | MC_1 | ID_0 | TACLR;
+    TB0CTL = TBSSEL_1 | MC_1 | ID_0 | TBCLR;
 
     //Enable interrupts on CCTL0
     TB0CCTL0 |= CCIE;
@@ -81,9 +79,9 @@ void setupPWM(void)
     P4OUT &= ~BIT6;
 
     //Set up the first three CCR to generate interrupts, each at 50% duty cycle.
-    TB0CCR1 = 16;
-    TB0CCR2 = 16;
-    TB0CCR3 = 16;
+    TB0CCR1 = CLOCK_PERIOD/2;
+    TB0CCR2 = CLOCK_PERIOD/2;
+    TB0CCR3 = CLOCK_PERIOD/2;
 
     TB0CCTL1 |= CCIE;
     TB0CCTL2 |= CCIE;
@@ -93,17 +91,17 @@ void setupPWM(void)
 
 void setPhaseA(unsigned char dutycycle)
 {
-    TB0CCR1 = (((unsigned int)dutycycle)*32)/100;
+    TB0CCR1 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
 }
 
 void setPhaseB(unsigned char dutycycle)
 {
-    TB0CCR2 = (((unsigned int)dutycycle)*32)/100;
+    TB0CCR2 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
 }
 
 void setPhaseC(unsigned char dutycycle)
 {
-    TB0CCR3 = (((unsigned int)dutycycle)*32)/100;
+    TB0CCR3 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
 }
 
 

@@ -12,10 +12,10 @@
 #include "Commutation.h"
 #include "MDtypes.h"
 
-#pragma vector = EUSCI_B2_VECTOR
-__interrupt void USCI_B2_ISR(void)
+#pragma vector = EUSCI_B0_VECTOR
+__interrupt void USCI_B0_ISR(void)
 {
-    switch(UCB2IV)
+    switch(UCB0IV)
     {
     case USCI_I2C_UCSTTIFG:
         RXCounter = 0;
@@ -23,12 +23,12 @@ __interrupt void USCI_B2_ISR(void)
         break;
 
     case USCI_I2C_UCRXIFG0:             // If we received sth.
-        RXData = UCB2RXBUF;             // Get RX data
+        RXData = UCB0RXBUF;             // Get RX data
         processIncomingByte(RXData);
         break;
 
     case USCI_I2C_UCTXIFG0:
-        UCB2TXBUF = generateOutgoingByte();
+        UCB0TXBUF = generateOutgoingByte();
         break;
 
     default:
@@ -45,8 +45,8 @@ void setupI2C(volatile MDstate_t* state)
     PM5CTL0 &= ~LOCKLPM5;
 
     //Activate the I2C mode on P7.0 and P7.1
-    P7SEL0 |= BIT0 | BIT1;
-    P7SEL1 &= ~(BIT0 | BIT1);
+    P1SEL0 &= ~(BIT6 | BIT7);
+    P1SEL1 |= BIT6 | BIT7;
 
     RXData = 0; //Zero our 1-byte buffers
     TXData = 0;
@@ -64,12 +64,12 @@ void setupI2C(volatile MDstate_t* state)
     // Configure USCI_B2 for I2C mode
     //Note: b/c the master provides the clock, we don't have to configure a clock source.
 
-    UCB2CTLW0 = UCSWRST;                    // Assert SW reset.
-    UCB2CTLW0 |= UCMODE_3 | UCSYNC;         // I2C mode, sync mode
-    UCB2CTLW0 &= ~UCMST;                    // NOT master mode (slave mode)
-    UCB2I2COA0 = SELF_I2C_ADDRESS | UCOAEN;             // own address is 0x48 + enable
-    UCB2CTLW0 &= ~UCSWRST;                  // Deassert SW reset (release the peripheral)
-    UCB2IE |= UCRXIE0 | UCTXIE0 | UCSTTIE;            // Enable Rx & Tx interrupt.
+    UCB0CTLW0 = UCSWRST;                    // Assert SW reset.
+    UCB0CTLW0 |= UCMODE_3 | UCSYNC;         // I2C mode, sync mode
+    UCB0CTLW0 &= ~UCMST;                    // NOT master mode (slave mode)
+    UCB0I2COA0 = SELF_I2C_ADDRESS | UCOAEN;             // own address is 0x48 + enable
+    UCB0CTLW0 &= ~UCSWRST;                  // Deassert SW reset (release the peripheral)
+    UCB0IE |= UCRXIE0 | UCTXIE0 | UCSTTIE;            // Enable Rx & Tx interrupt.
 }
 
 
