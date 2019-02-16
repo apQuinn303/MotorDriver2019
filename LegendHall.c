@@ -7,13 +7,11 @@
 //HALL_U = P4.7 pin 8
 
 void setupHALL() {
-//	P3DIR = ~BIT0; //P3.X Input Enabled
-//	P4DIR = ~BIT0; //P4.X Input Enabled
 	//Enabling Interrupts
 	P3IE |= BIT2;
 	P3IE |= BIT3;
 	P4IE |= BIT7;
-	//Setting IE low to hi
+	//Setting IE rising edge
 	P3IES &= ~BIT2;
 	P3IES &= ~BIT3;
 	P4IEs &= ~BIT7;
@@ -21,11 +19,15 @@ void setupHALL() {
 	//Clearing Flags
 	P3FG &= ~BIT2;
 	P3FG &= ~BIT3;
-	P3FG &= ~BIT7;
+	P4FG &= ~BIT7;
+
+	//Setting Up Timer
+
+
 	_EINT();
 }
 
-#pragma vector=PORT3_VECTOR //Sets Current Speed as frequency of motor revolutions
+#pragma vector=PORT3_VECTOR //Sets Current Speed as frequency of motor revolutions per clock cycle
 __interrupt void Port_3(void) {
     unsigned int currTime =
     deltaT = currTime - lastTime;
