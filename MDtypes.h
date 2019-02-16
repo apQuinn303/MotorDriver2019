@@ -17,5 +17,6 @@ typedef struct MDstate {
 
 volatile MDstate_t state;
 
+volatile unsigned int lastTime;
 
 #endif /* MDTYPES_H_ */

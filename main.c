@@ -24,6 +24,7 @@ int main(void)
 
 	setupPWM();
 	setupI2C(&state);
+	setupHall();
 
 
 	//Enter low power mode with interrupts enabled.
@@ -31,3 +32,6 @@ int main(void)
 	_BIS_SR(CPUOFF + GIE);
 	return 0;
 }
+
+
+
