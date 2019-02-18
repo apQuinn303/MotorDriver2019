@@ -22,8 +22,8 @@ void setupHALL() {
 	P4FG &= ~BIT7;
 
 	//Setting Up Timer
-
-
+	CCTL0 &= BIT8
+	TACTL = TASSEL_1 + MC_2 + ID_0; //ACLK Continuous Mode 1 Divider
 	_EINT();
 }
 
