@@ -23,6 +23,7 @@
 
 
 void initializeCommutation(void);
+void initializeHallSensors(void);
 void shutdownMotor(void);
 void updateCommutationState(void);
 
