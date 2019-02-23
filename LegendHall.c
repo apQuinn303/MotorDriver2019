@@ -24,14 +24,17 @@ void setupHALL() {
 	//Setting Up Timer
 	CCTL0 &= BIT8
 	TACTL = TASSEL_1 + MC_2 + ID_0; //ACLK Continuous Mode 1 Divider
+	TA1CCTL1 &= BIT11 + BIT8;
 	_EINT();
 }
 
-#pragma vector=PORT3_VECTOR //Sets Current Speed as frequency of motor revolutions per clock cycle
+#pragma vector=PORT3_VECTOR //Sets Current Speed as frequency of motor revolutions per minute
 __interrupt void Port_3(void) {
-    unsigned int currTime =
+    TA1CCTL1 ^= BIT13;
+    unsigned int currTime = TA1CCR1;
     deltaT = currTime - lastTime;
-    state.currentSpeed = 1/(3*deltaT);
+    double seconds = ((double)deltaT/32768);
+    state.currentSpeed = 60/(3*deltaT*128); //RPM
     lastTime = currTime;
     P3FG &= ~BIT2;
     P3FG &= ~BIT3;
