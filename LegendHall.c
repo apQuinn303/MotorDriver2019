@@ -5,6 +5,7 @@
 //Hall W = P3.2_A14_C14 pin 6
 //Hall_V = P3.3_A15_C15 pin 7
 //HALL_U = P4.7 pin 8
+int lastTime = 0;
 
 void setupHALL() {
 	//Enabling Interrupts
@@ -31,10 +32,11 @@ void setupHALL() {
 #pragma vector=PORT3_VECTOR //Sets Current Speed as frequency of motor revolutions per minute
 __interrupt void Port_3(void) {
     TA1CCTL1 ^= BIT13;
-    unsigned int currTime = TA1CCR1;
+    int currTime = TA1CCR1;
     deltaT = currTime - lastTime;
+    if(currTime < lastTime) deltaT = deltaT + 0xFFFF;
     double seconds = ((double)deltaT/32768);
-    state.currentSpeed = 60/(3*deltaT*128); //RPM
+    state.currentSpeed = (unsigned char)(60/(3*deltaT*128)); //RPM
     lastTime = currTime;
     P3FG &= ~BIT2;
     P3FG &= ~BIT3;
@@ -42,9 +44,12 @@ __interrupt void Port_3(void) {
 
 #pragma vector=PORT4_VECTOR
 __interrupt void Port_4(void) {
-    unsigned int currTime =
+    TA1CCTL1 ^= BIT13;
+    int currTime = TA1CCR1;
     deltaT = currTime - lastTime;
-    state.currentSpeed = 1/(3*deltaT);
+    if(currTime < lastTime) deltaT = deltaT + 0xFFFF;
+    double seconds = ((double)deltaT/32768);
+    state.currentSpeed = (unsigned char)(60/(3*deltaT*128)); //RPM
     lastTime = currTime;
     P4FG &= ~BIT7;
 }
