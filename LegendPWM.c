@@ -11,10 +11,23 @@
 #pragma vector = TIMER0_B0_VECTOR
 __interrupt void timerBISR0(void){
 
-    //Assert all outputs.
-    P3OUT |= BIT6;
-    P4OUT |= BIT4;
-    P4OUT |= BIT6;
+    //Assert all active outputs.
+    if(TB0CCR1 > 0)
+        {
+            P4OUT |= BIT5;//P4OUT |= BIT6;
+        }
+
+    if(TB0CCR2 > 0)
+        {
+            P3OUT |= BIT7;//P4OUT |= BIT4;
+        }
+
+    if(TB0CCR3 > 0)
+        {
+            P3OUT |= BIT5;//P3OUT |= BIT6;
+        }
+
+
 
 }
 
@@ -24,15 +37,15 @@ __interrupt void timerBISR1(void){
     switch(TB0IV)
     {
     case 2:
-        P4OUT &= ~BIT6; //Phase A
+        if(TB0CCR1 > 0)P4OUT &= ~BIT5;//P4OUT &= ~BIT6; //Phase A
         break;
 
     case 4:
-        P4OUT &= ~BIT4; //Phase B
+        if(TB0CCR2 > 0)P3OUT &= ~BIT7;//P4OUT &= ~BIT4; //Phase B
         break;
 
     case 6:
-        P3OUT &= ~BIT6; //Phase C
+        if(TB0CCR3 > 0)P3OUT &= ~BIT5;//P3OUT &= ~BIT6; //Phase C
         break;
 
     default: //If it's none of the interrupts we care about, return.
@@ -68,20 +81,40 @@ void setupPWM(void)
     P4SEL1 &= ~BIT4;
     P4SEL1 &= ~BIT6;
 
+    //Set the three disconnect pins to GPIO function.
+    P4SEL0 &= ~BIT5;
+    P4SEL1 &= ~BIT5;
+    P3SEL0 &= ~BIT7;
+    P3SEL1 &= ~BIT7;
+    P3SEL0 &= ~BIT5;
+    P3SEL1 &= ~BIT5;
+
     //Set the three PWM pins to output direction.
     P3DIR |= BIT6;
     P4DIR |= BIT4;
     P4DIR |= BIT6;
+
+    //Set the three disconnect pins to output direction.
+    P4DIR |= BIT5;
+    P3DIR |= BIT7;
+    P3DIR |= BIT5;
 
     //Zero the outputs.
     P3OUT &= ~BIT6;
     P4OUT &= ~BIT4;
     P4OUT &= ~BIT6;
 
-    //Set up the first three CCR to generate interrupts, each at 50% duty cycle.
-    TB0CCR1 = CLOCK_PERIOD/2;
+    //Enable connection.
+    P4OUT |= BIT5;
+    P3OUT |= BIT7;
+    P3OUT |= BIT5;
+
+    setPhaseA(0);
+    setPhaseB(0);
+    setPhaseC(0);
+    /*TB0CCR1 = CLOCK_PERIOD/2;
     TB0CCR2 = CLOCK_PERIOD/2;
-    TB0CCR3 = CLOCK_PERIOD/2;
+    TB0CCR3 = CLOCK_PERIOD/2;*/
 
     TB0CCTL1 |= CCIE;
     TB0CCTL2 |= CCIE;
@@ -92,16 +125,85 @@ void setupPWM(void)
 void setPhaseA(unsigned char dutycycle)
 {
     TB0CCR1 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
+    P4OUT |= BIT6; //Turn on
+    Phase_A_DC = dutycycle;
+    //P4OUT |= BIT5;
+    //Alternate plugged in or not.
+
+}
+
+void setPhaseALow()
+{
+    TB0CCR1 = 0;
+    P4OUT |= BIT5;
+    Phase_A_DC = 0;
+
+    P4OUT &= ~BIT6;
+}
+
+void disconnectPhaseA()
+{
+    TB0CCR1 = 0;
+    P4OUT &= ~BIT5;   //Disconnect
+    Phase_A_DC = 0;
+
+    P4OUT &= ~BIT6;
 }
 
 void setPhaseB(unsigned char dutycycle)
 {
     TB0CCR2 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
+    P4OUT |= BIT4; //Turn on
+    Phase_B_DC = dutycycle;
+    //P3OUT |= BIT7;
+    //Alternate connected or not.
+
+}
+
+void setPhaseBLow()
+{
+    TB0CCR2 = 0;
+    P3OUT |= BIT7;
+    Phase_B_DC = 0;
+
+    P4OUT &= ~BIT4;
+}
+
+void disconnectPhaseB()
+{
+    TB0CCR2 = 0;
+    P3OUT &= ~BIT7;
+    Phase_B_DC = 0;
+
+    P4OUT &= ~BIT4;
 }
 
 void setPhaseC(unsigned char dutycycle)
 {
     TB0CCR3 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
+    P3OUT |= BIT6; //Turn on
+    Phase_C_DC = dutycycle;
+    //P3OUT |= BIT5;
+    //Alternate plugged in or not.
+
+}
+
+void setPhaseCLow()
+{
+    TB0CCR3 = 0;
+    P3OUT |= BIT5;
+    Phase_C_DC = 0;
+
+    P3OUT &= ~BIT6;
+}
+
+void disconnectPhaseC()
+{
+    TB0CCR3 = 0;
+    P3OUT &= ~BIT5;
+    Phase_C_DC = 0;
+
+    P3OUT &= ~BIT6;
 }
 
 

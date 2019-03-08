@@ -30,10 +30,6 @@ int main(void){
 	initializeCommutation();
 	initializeHallSensors();
 
-	//Force the thing to start commutation at 1 transition per second
-	TA0CCR0 = 40;
-
-
 	//CSCTL0 = CSKEY; //Write the password to gain access to clk registers.
 	//CSCTL4 &= ~SMCLKOFF; //Make sure SMCLK will not be turned off.
 	//Enter low power mode with interrupts enabled.

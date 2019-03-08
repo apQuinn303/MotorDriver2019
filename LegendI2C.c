@@ -115,11 +115,16 @@ void processIncomingByte(unsigned char byte)
 
         if(incoming.flags & STARTUP) boardState->inShutdown = 0;
 
+
         //If both STARTUP and SHUTDOWN, then SHUTDOWN takes priority.
         if(incoming.flags & SHUTDOWN)
         {
             boardState->inShutdown = 1;
             shutdownMotor();
+        }
+        else
+        {
+            updateMotorSpeed();
         }
     }
     else

@@ -18,14 +18,17 @@
 #define LS_W    0x10
 #define HS_W    0x20
 
+#define DEFAULT_MOTOR_STRENGTH 25
 
 
+unsigned char currentHallState;
 
 
 void initializeCommutation(void);
 void initializeHallSensors(void);
 void shutdownMotor(void);
 void updateCommutationState(void);
+void updateMotorSpeed(void);
 
 
 

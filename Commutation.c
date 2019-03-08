@@ -9,6 +9,8 @@
 #include "Commutation.h"
 #include "MDtypes.h"
 
+#define AdamHack 1
+
 /*#pragma vector = PORT3_VECTOR
 __interrupt void P3_ISR(void)
 {
@@ -46,6 +48,7 @@ __interrupt void P4_ISR(void)
     }
 }*/
 
+unsigned char hallStateSequence[] = {6, 4, 5, 1, 3, 2};
 
 unsigned char CounterCWCommutationTable[] = { 0x00,
                                       HS_W|LS_V,       // Hall position 001
@@ -78,37 +81,44 @@ __interrupt void timerAISR0(void){
  */
 void initializeCommutation(void)
 {
+    currentHallState = 0;
+
     //TA0CCR0 defines the commutation speed. We write "0" to it so we don't immediately start commutating.
     TA0CCR0 = 0;
 
     //Set the clock select to "ACLK" and Mode Control to "UP" and Input Divider to /8 and then clear the clock.
-    TA0CTL = TBSSEL_1 | MC_1 | ID_3 | TACLR;
+    TA0CTL = TASSEL_1 | MC_1 | ID_3 | TACLR;
 
     //Enable interrupts on CCTL0
     TA0CCTL0 |= CCIE;
 
 }
 
+/*The user passes us a uint8 to define speed, and I want this to map to a value from 0 to 0.5 rev/sec (0-30rpm)
+* There are 24 electrical phases per revolution, so at the fastest, I want somewhere from 0 to 12 phases/sec.
+* A value of 256 should respond to a phase change every 1/12 = 0.0833 sec = 334 clock ticks.
+* If I was inputing values from 1-100, I could divide by that number to get at minimum 320, so if I can rescale 256
+* to be 0-100.
+*/
+void updateMotorSpeed()
+{
+    if(state.desiredSpeed ==0) shutdownMotor();
+    else TA0CCR0 = 32000 / ((state.desiredSpeed*100)/256);
+}
+
 void initializeHallSensors(void)
 {
-    //P3.2 ~ Hall W
-    P3DIR &= ~BIT2; //Set as an input
 
-    if(P3IN & BIT2) P3IES |= BIT2; //Set up interrupt edge based on state.
-    else P3IN &= ~BIT2;
 
-    P3IFG &= ~BIT2; //Clear the interrupt flag.
-    //P3IE |= BIT2; //Enable interrupt
+#ifdef AdamHack
+    //In my hacked-together board, Hall U = PJ.6 Hall V = PJ.7 Hall W = PJ.2
 
-    //P3.3 ~ Hall V
-    P3DIR &= ~BIT3; //Set as an input
+    PJDIR &= ~BIT6; //Set as an input
+    PJDIR &= ~BIT7; //Set as an input
+    PJDIR &= ~BIT2; //Set as an input
 
-    if(P3IN & BIT3) P3IES |= BIT3; //Set up interrupt edge based on state.
-    else P3IN &= ~BIT3;
 
-    P3IFG &= ~BIT3; //Clear the interrupt flag.
-    //P3IE |= BIT3; //Enable interrupt
-
+#else
     //P4.7 ~ Hall U
     P4DIR &= ~BIT7; //Set as an input
 
@@ -118,14 +128,37 @@ void initializeHallSensors(void)
     P4IFG &= ~BIT7; //Clear the interrupt flag.
     //P4IE |= BIT7; //Enable interrupt
 
+    //P3.2 ~ Hall W
+        P3DIR &= ~BIT2; //Set as an input
+
+        if(P3IN & BIT2) P3IES |= BIT2; //Set up interrupt edge based on state.
+        else P3IES &= ~BIT2;
+
+        P3IFG &= ~BIT2; //Clear the interrupt flag.
+        //P3IE |= BIT2; //Enable interrupt
+
+        //P3.3 ~ Hall V
+        P3DIR &= ~BIT3; //Set as an input
+
+        if(P3IN & BIT3) P3IES |= BIT3; //Set up interrupt edge based on state.
+        else P3IES &= ~BIT3;
+
+        P3IFG &= ~BIT3; //Clear the interrupt flag.
+        //P3IE |= BIT3; //Enable interrupt
+
+#endif
+
+
 }
 
 void shutdownMotor(void)
 {
     TB0CCR0 = 0;
-    //setPhaseA(0);
-    //setPhaseB(0);
-    //setPhaseC(0);
+    TA0CCR0 = 0;
+    P4OUT &= ~BIT6; //Phase A
+    P4OUT &= ~BIT4; //Phase B
+    P3OUT &= ~BIT6; //Phase C
+
     state.desiredSpeed = 0;
 }
 
@@ -142,17 +175,27 @@ void updateCommutationState(void)
         TB0CCR0 = CLOCK_PERIOD;
     }
 
-    unsigned char pwm_max_duty_cycle = state.desiredSpeed;
+    unsigned char pwm_max_duty_cycle = DEFAULT_MOTOR_STRENGTH;
 
     if(pwm_max_duty_cycle > 100) pwm_max_duty_cycle = 100;
 
+    //Go through the states one at a time.
+    unsigned char hallState = hallStateSequence[currentHallState];
+    currentHallState = (currentHallState + 1) % 6;
+
 
     //Form a bit vector out of the hall state inputs.
-    //NOTE: May need to change this if the windings are different than anticipated.
+   /* //NOTE: May need to change this if the windings are different than anticipated.
     unsigned char hallState = 0;
-    if(P4IN & BIT7) hallState |= BIT2; //Tried; 1, 2, 0 / 0, 1, 2
-    if(P3IN & BIT3) hallState |= BIT1;
+#ifdef AdamHack
+    if(PJIN & BIT6) hallState |= BIT2;
+    if(PJIN & BIT7) hallState |= BIT1;
+    if(PJIN & BIT2) hallState |= BIT0;
+#else
+    if(P4IN & BIT7) hallState |= BIT2;
+    if(P3IN & BIT3) hallState |= BIT2;
     if(P3IN & BIT2) hallState |= BIT0;
+#endif*/
 
     unsigned char commutationState;
 
@@ -169,11 +212,11 @@ void updateCommutationState(void)
     }
     else if(commutationState & LS_U)
     {
-        setPhaseA(0);
+        setPhaseALow();
     }
     else
     {
-        setPhaseA(pwm_max_duty_cycle/2);
+        disconnectPhaseA();
     }
 
     //Phase B/V
@@ -183,11 +226,11 @@ void updateCommutationState(void)
         }
         else if(commutationState & LS_V)
         {
-            setPhaseB(0);
+            setPhaseBLow();
         }
         else
         {
-            setPhaseB(pwm_max_duty_cycle/2);
+            disconnectPhaseB();
         }
 
     //Phase C/W (not to be confused with "CW" ;) )
@@ -197,14 +240,12 @@ void updateCommutationState(void)
         }
         else if(commutationState & LS_W)
         {
-            setPhaseC(0);
+            setPhaseCLow();
         }
         else
         {
-            setPhaseC(pwm_max_duty_cycle/2);
+            disconnectPhaseC();
         }
-
-
 }
 
 
