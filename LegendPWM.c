@@ -11,20 +11,20 @@
 #pragma vector = TIMER0_B0_VECTOR
 __interrupt void timerBISR0(void){
 
-    //Assert all active outputs.
-    if(TB0CCR1 > 0)
+    //Connect all outputs to their respective
+    if(Phase_A_DC > 0)
         {
-            P4OUT |= BIT5;//P4OUT |= BIT6;
+            P4OUT |= BIT5;
         }
 
-    if(TB0CCR2 > 0)
+    if(Phase_B_DC > 0)
         {
-            P3OUT |= BIT7;//P4OUT |= BIT4;
+            P3OUT |= BIT7;
         }
 
-    if(TB0CCR3 > 0)
+    if(Phase_C_DC > 0)
         {
-            P3OUT |= BIT5;//P3OUT |= BIT6;
+            P3OUT |= BIT5;
         }
 
 
@@ -37,15 +37,15 @@ __interrupt void timerBISR1(void){
     switch(TB0IV)
     {
     case 2:
-        if(TB0CCR1 > 0)P4OUT &= ~BIT5;//P4OUT &= ~BIT6; //Phase A
+        if(Phase_A_DC > 0)P4OUT &= ~BIT5;//P4OUT &= ~BIT6; //Phase A
         break;
 
     case 4:
-        if(TB0CCR2 > 0)P3OUT &= ~BIT7;//P4OUT &= ~BIT4; //Phase B
+        if(Phase_B_DC > 0)P3OUT &= ~BIT7;//P4OUT &= ~BIT4; //Phase B
         break;
 
     case 6:
-        if(TB0CCR3 > 0)P3OUT &= ~BIT5;//P3OUT &= ~BIT6; //Phase C
+        if(Phase_C_DC > 0)P3OUT &= ~BIT5;//P3OUT &= ~BIT6; //Phase C
         break;
 
     default: //If it's none of the interrupts we care about, return.
@@ -112,9 +112,6 @@ void setupPWM(void)
     setPhaseA(0);
     setPhaseB(0);
     setPhaseC(0);
-    /*TB0CCR1 = CLOCK_PERIOD/2;
-    TB0CCR2 = CLOCK_PERIOD/2;
-    TB0CCR3 = CLOCK_PERIOD/2;*/
 
     TB0CCTL1 |= CCIE;
     TB0CCTL2 |= CCIE;
@@ -124,85 +121,71 @@ void setupPWM(void)
 
 void setPhaseA(unsigned char dutycycle)
 {
+    Phase_A_DC = dutycycle;
     TB0CCR1 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
     P4OUT |= BIT6; //Turn on
-    Phase_A_DC = dutycycle;
-    //P4OUT |= BIT5;
-    //Alternate plugged in or not.
 
 }
 
 void setPhaseALow()
 {
+    Phase_A_DC = 0;
     TB0CCR1 = 0;
     P4OUT |= BIT5;
-    Phase_A_DC = 0;
-
     P4OUT &= ~BIT6;
 }
 
 void disconnectPhaseA()
 {
+    Phase_A_DC = 0;
     TB0CCR1 = 0;
     P4OUT &= ~BIT5;   //Disconnect
-    Phase_A_DC = 0;
-
     P4OUT &= ~BIT6;
 }
 
 void setPhaseB(unsigned char dutycycle)
 {
+    Phase_B_DC = dutycycle;
     TB0CCR2 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
     P4OUT |= BIT4; //Turn on
-    Phase_B_DC = dutycycle;
-    //P3OUT |= BIT7;
-    //Alternate connected or not.
-
 }
 
 void setPhaseBLow()
 {
+    Phase_B_DC = 0;
     TB0CCR2 = 0;
     P3OUT |= BIT7;
-    Phase_B_DC = 0;
-
     P4OUT &= ~BIT4;
 }
 
 void disconnectPhaseB()
 {
+    Phase_B_DC = 0;
     TB0CCR2 = 0;
     P3OUT &= ~BIT7;
-    Phase_B_DC = 0;
-
     P4OUT &= ~BIT4;
 }
 
 void setPhaseC(unsigned char dutycycle)
 {
+    Phase_C_DC = dutycycle;
     TB0CCR3 = (((unsigned int)dutycycle)*CLOCK_PERIOD)/100;
     P3OUT |= BIT6; //Turn on
-    Phase_C_DC = dutycycle;
-    //P3OUT |= BIT5;
-    //Alternate plugged in or not.
-
 }
 
 void setPhaseCLow()
 {
+    Phase_C_DC = 0;
     TB0CCR3 = 0;
     P3OUT |= BIT5;
-    Phase_C_DC = 0;
-
     P3OUT &= ~BIT6;
 }
 
 void disconnectPhaseC()
 {
+    Phase_C_DC = 0;
     TB0CCR3 = 0;
     P3OUT &= ~BIT5;
-    Phase_C_DC = 0;
-
     P3OUT &= ~BIT6;
 }
 

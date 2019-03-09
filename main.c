@@ -30,8 +30,6 @@ int main(void){
 	initializeCommutation();
 	initializeHallSensors();
 
-	//CSCTL0 = CSKEY; //Write the password to gain access to clk registers.
-	//CSCTL4 &= ~SMCLKOFF; //Make sure SMCLK will not be turned off.
 	//Enter low power mode with interrupts enabled.
 	_BIS_SR(CPUOFF + GIE);
 	return 0;

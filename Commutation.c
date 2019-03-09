@@ -48,6 +48,8 @@ __interrupt void P4_ISR(void)
     }
 }*/
 
+
+unsigned char CCWhallStateSequence[] = {2, 3, 1, 5, 4, 6};
 unsigned char hallStateSequence[] = {6, 4, 5, 1, 3, 2};
 
 unsigned char CounterCWCommutationTable[] = { 0x00,
@@ -102,7 +104,7 @@ void initializeCommutation(void)
 */
 void updateMotorSpeed()
 {
-    if(state.desiredSpeed ==0) shutdownMotor();
+    if(state.desiredSpeed == 0) TA0CCR0 = 0;
     else TA0CCR0 = 32000 / ((state.desiredSpeed*100)/256);
 }
 
@@ -180,21 +182,23 @@ void updateCommutationState(void)
     if(pwm_max_duty_cycle > 100) pwm_max_duty_cycle = 100;
 
     //Go through the states one at a time.
-    unsigned char hallState = hallStateSequence[currentHallState];
+    unsigned char hallState;
+    if(state.counterClockwise) hallState = CCWhallStateSequence[currentHallState];
+    else hallState = hallStateSequence[currentHallState];
     currentHallState = (currentHallState + 1) % 6;
 
 
     //Form a bit vector out of the hall state inputs.
-   /* //NOTE: May need to change this if the windings are different than anticipated.
-    unsigned char hallState = 0;
+    //NOTE: May need to change this if the windings are different than anticipated.
+    unsigned char realHallState = 0;
 #ifdef AdamHack
-    if(PJIN & BIT6) hallState |= BIT2;
-    if(PJIN & BIT7) hallState |= BIT1;
-    if(PJIN & BIT2) hallState |= BIT0;
+    if(PJIN & BIT6) realHallState |= BIT2;
+    if(PJIN & BIT7) realHallState |= BIT1;
+    if(PJIN & BIT2) realHallState |= BIT0;
 #else
-    if(P4IN & BIT7) hallState |= BIT2;
-    if(P3IN & BIT3) hallState |= BIT2;
-    if(P3IN & BIT2) hallState |= BIT0;
+    if(P4IN & BIT7) realHallState |= BIT2;
+    if(P3IN & BIT3) realHallState |= BIT2;
+    if(P3IN & BIT2) realHallState |= BIT0;
 #endif*/
 
     unsigned char commutationState;
