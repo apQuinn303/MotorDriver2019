@@ -18,7 +18,7 @@
 #define LS_W    0x10
 #define HS_W    0x20
 
-#define DEFAULT_MOTOR_STRENGTH 25
+#define DEFAULT_MOTOR_STRENGTH 5
 
 
 unsigned char currentHallState;

@@ -11,43 +11,8 @@
 
 #define AdamHack 1
 
-/*#pragma vector = PORT3_VECTOR
-__interrupt void P3_ISR(void)
-{
-    switch(P3IV)
-    {
-    case P3IV_P3IFG2:
-        if(P3IN & BIT2) P3IES |= BIT2; //Swap interrupt edge direction.
-        else P3IES &= ~BIT2;
-        updateCommutationState();
-        return;
-    case P3IV_P3IFG3:
-        if(P3IN & BIT3) P3IES |= BIT3; //Swap interrupt edge direction.
-        else P3IES &= ~BIT3;
-        updateCommutationState();
-        return;
-
-    default:
-        return;
-    }
-}
-
-#pragma vector = PORT4_VECTOR
-__interrupt void P4_ISR(void)
-{
-    switch(P4IV)
-    {
-    case P4IV_P4IFG7:
-        if(P4IN & BIT7) P4IES |= BIT7; //Swap interrupt edge direction.
-        else P4IES &= ~BIT7;
-        updateCommutationState();
-        return;
-
-    default:
-        return;
-    }
-}*/
-
+unsigned char hallStateRecord[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+unsigned char hallStateRecordStart;
 
 unsigned char CCWhallStateSequence[] = {2, 3, 1, 5, 4, 6};
 unsigned char hallStateSequence[] = {6, 4, 5, 1, 3, 2};
@@ -84,6 +49,7 @@ __interrupt void timerAISR0(void){
 void initializeCommutation(void)
 {
     currentHallState = 0;
+    hallStateRecordStart = 0;
 
     //TA0CCR0 defines the commutation speed. We write "0" to it so we don't immediately start commutating.
     TA0CCR0 = 0;
@@ -153,6 +119,16 @@ void initializeHallSensors(void)
 
 }
 
+/*If it takes us "ticks"-many ticks of TA0 to do one electrical cycle, and
+ * TA0_ticks = 32000 / ((speed*100)/256), then
+ * speed = 32000 * 256 / (TA0_ticks*100)
+ */
+void setCurrentSpeed(unsigned int ticks)
+{
+    //Split up the multiplication to make sure it stays in INT range.
+    state.currentSpeed = (state.desiredSpeed * 6) / ticks;
+}
+
 void shutdownMotor(void)
 {
     TB0CCR0 = 0;
@@ -199,7 +175,29 @@ void updateCommutationState(void)
     if(P4IN & BIT7) realHallState |= BIT2;
     if(P3IN & BIT3) realHallState |= BIT2;
     if(P3IN & BIT2) realHallState |= BIT0;
-#endif*/
+#endif
+
+    hallStateRecord[hallStateRecordStart] = realHallState;
+
+    if(hallStateRecord[(hallStateRecordStart + 9)%10] == realHallState
+            && hallStateRecord[(hallStateRecordStart + 8)%10] == realHallState)
+    {
+        //Three identical hall states in a row --- we must be stalled!
+        state.inShutdown = 1;
+        shutdownMotor();
+    }
+
+    unsigned char i, k;
+    for(k = 8; k > 0; k--)
+    {
+        i = (hallStateRecordStart + k)%10;
+        if(hallStateRecord[i] == realHallState)
+        {
+            setCurrentSpeed(((unsigned int)(10-k)));
+        }
+    }
+
+    hallStateRecordStart = (hallStateRecordStart+1) % 10;
 
     unsigned char commutationState;
 
