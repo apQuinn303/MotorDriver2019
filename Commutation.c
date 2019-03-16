@@ -65,12 +65,13 @@ void initializeCommutation(void)
 /*The user passes us a uint8 to define speed, and I want this to map to a value from 0 to 0.5 rev/sec (0-30rpm)
 * There are 24 electrical phases per revolution, so at the fastest, I want somewhere from 0 to 12 phases/sec.
 * A value of 256 should respond to a phase change every 1/12 = 0.0833 sec = 334 clock ticks.
+* (32 kHz clock, divided by 8 in above function = 4000 clock ticks/sec, 334/4000 = 0.0835.)
 * If I was inputing values from 1-100, I could divide by that number to get at minimum 320, so if I can rescale 256
 * to be 0-100.
 */
 void updateMotorSpeed()
 {
-    if(state.desiredSpeed == 0) TA0CCR0 = 0;
+    if(state.desiredSpeed == 0) TA0CCR0 = 0; // set commutation timer to 0
     else TA0CCR0 = 32000 / ((state.desiredSpeed*100)/256);
 }
 

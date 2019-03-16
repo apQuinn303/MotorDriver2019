@@ -48,7 +48,7 @@ typedef struct I2Cmessage {
  * bit 1 - MD_OK (Asserted by Motor Driver if OK)
  * bit 2 - MD_NOK (Asserted by Motor Driver if in error state)
  * bit 3 - Request Motor Shutdown
- * bit 4 - Request Motor Startup
+ * bit 4 - Request Motor Startup (doesn't have to be 1 if already running)
  * bit 5 - Error Flag (indicates the last transmission was not
  *                     received properly due to an error.)
  * bit 6 - Counter-Clockwise Flag (EWISOTT)
